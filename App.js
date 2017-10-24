@@ -13,6 +13,23 @@ import {
 
 const { width, height } = Dimensions.get('window');
 const AnimatedList = Animated.createAnimatedComponent(FlatList);
+const data = [
+  { name: 'Ings', color: '#39b46e', uri: require('./google-now-wallpaper-2.png') },
+  { name: 'Origi', color: '#29b3e9', uri: require('./Parallax-mte-featured.jpg') },
+  { name: 'Kent', color: '#7c3d88', uri: require('./Parallax1.jpg') },
+];
+
+const getInterpolate = (animatedScroll, i) => {
+  const inputRange = [i - 1 * width, i * width, (i + 1) * width];
+
+  const outputRange = i === 0 ? [0, 0, 100] : [-300, 0, 100];
+
+  return animatedScroll.interpolate({
+    inputRange,
+    outputRange,
+    extrapolate: 'clamp',
+  });
+};
 
 export default class App extends React.Component {
   constructor(props) {
@@ -24,14 +41,13 @@ export default class App extends React.Component {
   }
   imageParallex = new Animated.Value(0);
   coverScale = new Animated.Value(0);
-  // onScroll(event) {
-  //   let offsetX = event.nativeEvent.contentOffset.x,
-  //     pageWidth = width - 10;
-  //   this.setState({
-  //     currentPage: Math.floor((offsetX - pageWidth / 2) / pageWidth) + 1,
-  //   });
-  //   console.log(this.state);
-  // }
+  onScroll(event) {
+    let offsetX = event.nativeEvent.contentOffset.x,
+      pageWidth = width - 10;
+    this.setState({
+      currentPage: Math.round(offsetX / width),
+    });
+  }
   animate() {
     if (!this.state.imageScaled) {
       Animated.timing(this.coverScale, {
@@ -64,18 +80,19 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <AnimatedList
-          data={[{ name: 'Ings', color: '#39b46e' }, { name: 'Origi', color: '#29b3e9' }]}
+          data={data}
           showsHorizontalScrollIndicator={false}
           style={{ flexDirection: 'row' }}
           contentContainerStyle={{ justifyContent: 'center' }}
           pagingEnabled
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { x: this.imageParallex } } }],
-            { useNativeDriver: true },
+            { useNativeDriver: true, listener: e => this.onScroll(e) },
           )}
           horizontal
+          keyExtractor={item => item.name}
           scrollEventThrottle={1}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View
               key={item.name}
               style={{
@@ -85,7 +102,7 @@ export default class App extends React.Component {
               }}
             >
               <TouchableOpacity
-                activeOpacity={0.7}
+                activeOpacity={0.95}
                 onPress={() => this.animate()}
                 style={{
                   height: '100%',
@@ -114,14 +131,21 @@ export default class App extends React.Component {
                     style={{
                       width: '100%',
                       height: '75%',
-                      transform: [{ translateX: this.translateX }],
+                      transform: [
+                        {
+                          translateX: getInterpolate(this.imageParallex, index),
+                        },
+                      ],
                     }}
-                    source={require('./google-now-wallpaper-2.png')}
+                    source={item.uri}
                   />
                   <View
                     style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
                   >
-                    <Text style={{ fontSize: 26 }}>{item.name}</Text>
+                    <Text style={{ fontSize: 26 }}>
+                      {item.name}
+                      {index}
+                    </Text>
                   </View>
                 </Animated.View>
               </TouchableOpacity>
