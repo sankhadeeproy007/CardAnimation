@@ -27,3 +27,7 @@ export default class App extends React.Component {
   }
 }
 ```
+
+### To-do
+* Make card configurable (support images)
+* Animated duration and easing functions as props
